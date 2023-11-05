@@ -34,3 +34,6 @@ Route.post('/callback_url', async ({request, response})=>{
   console.log('callback_url')
   console.log( request.body())
 })
+
+Route.post('/documents', 'DocumentsController.store')
+Route.get('/documents', 'DocumentsController.index')

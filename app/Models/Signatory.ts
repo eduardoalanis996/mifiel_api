@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column,  hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm'
+import SignatoryDocument from './SignatoryDocument'
 
 export default class Signatory extends BaseModel {
   @column({ isPrimary: true })
@@ -19,4 +20,8 @@ export default class Signatory extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
+
+  @hasMany(() => SignatoryDocument)
+  public signatoryDocuments: HasMany<typeof SignatoryDocument>
+
 }

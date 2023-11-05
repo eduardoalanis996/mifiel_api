@@ -11,7 +11,7 @@ export default class extends BaseSchema {
       table.string('widget_id').unique()
       table.text('token')
       table.string('signed_file_name')
-      table.boolean('is_signed')
+      table.boolean('is_signed').defaultTo(false)
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
     })
