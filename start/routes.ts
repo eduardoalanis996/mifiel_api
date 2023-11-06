@@ -25,10 +25,7 @@ Route.get('/', async () => {
 })
 
 
-Route.post('/sign_callback_url', async ({request, response})=>{
-  console.log('sign_callback_url')
-  console.log( request.body())
-})
+Route.post('/sign_callback_url', 'DocumentsController.callback')
 
 Route.post('/callback_url', async ({request, response})=>{
   console.log('callback_url')

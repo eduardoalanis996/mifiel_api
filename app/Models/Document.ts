@@ -6,6 +6,9 @@ export default class Document extends BaseModel {
   public id: number
 
   @column()
+  public mifielDocumentId: string
+
+  @column()
   public name: string
 
   @column()

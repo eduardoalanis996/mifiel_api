@@ -17,6 +17,17 @@ class MiFielService {
 
     public async createDocument(fileHash: unknown, fileName: string, signatories: Array<any>): Promise<any> {
         try {
+
+            console.log({
+                original_hash: fileHash,
+                name: fileName,
+                signatories: signatories.map((s) => {
+                    return { name: s.name, email: s.email, tax_id: s.rfc }
+                }),
+                callback_url: `${Env.get('APP_DOMAIN')}callback_url`,
+                sign_callback_url: `${Env.get('APP_DOMAIN')}sign_callback_url`
+            })
+
             const request = await axios.post(`${Env.get('MIFIEL_API_URL')}documents`, {
                 original_hash: fileHash,
                 name: fileName,

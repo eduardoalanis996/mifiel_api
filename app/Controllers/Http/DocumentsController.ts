@@ -9,10 +9,11 @@ import Signatory from 'App/Models/Signatory'
 import Document from 'App/Models/Document'
 import * as crypto from 'crypto';
 import fs from 'fs'
+import Mail from '@ioc:Adonis/Addons/Mail'
+import SignatoryDocument from 'App/Models/SignatoryDocument'
 
 
 const MIFIEL_DOCUMENT_FILE_NAME = 'sample.pdf'
-//const MIFIEL_DOCUMENT = 'Contrato de compra venta'
 
 //AAA020101AAA
 
@@ -62,7 +63,10 @@ export default class DocumentsController {
 
             const signatories = await Signatory.fetchOrCreateMany('rfc', signatoriesToMifiel, trx)
 
-            const document = await Document.create({ name: this.MIFIEL_DOCUMENT, originalFileName: MIFIEL_DOCUMENT_FILE_NAME, encode: base64Content }, trx)
+            const document = await Document.create({
+                mifielDocumentId: mifielDocumentResponse.id, name: this.MIFIEL_DOCUMENT,
+                originalFileName: MIFIEL_DOCUMENT_FILE_NAME, encode: base64Content
+            }, trx)
 
             const SignatoryDocumentData = signatories.map((signer) => {
                 return {
@@ -71,13 +75,24 @@ export default class DocumentsController {
                 }
             })
 
+            // await Mail.sendLater((message) => {
+            //     message.htmlView('emails/signature_client', {
+            //       name:'Jhon Doe',
+            //       widgetId:'BH4kkeZoJJ'
+            //     })
+            //     message.to('eduardoalanis996@gmail.com')
+            //     message.subject('Contrato de compra venta')
+            //     message.from('noreply.mifiel@gmail.com')
+            //   })
+
             await SignatoryDocument.createMany(SignatoryDocumentData, trx)
 
-             trx.commit()
+            trx.commit()
 
             response.status(200).json({ message: 'OK', code: 'OK', status: 200 })
 
         } catch (e) {
+            console.log(e)
             trx.rollback()
             throw new Error(e)
         }
@@ -114,14 +129,30 @@ export default class DocumentsController {
                     if (s.id == item.documents.id) {
                         return {
                             ...s.toJSON(),
-                            ... s.$extras
+                            ...s.$extras
                         }
                     }
-                }).filter((x)=> x != null)
+                }).filter((x) => x != null)
             }
         })
 
         return response.status(200).json(responseData)
+    }
+
+    public async callback({ request }: HttpContextContract) {
+        const payload = request.body()
+
+        const document = await Document.findBy('mifiel_document_id', payload.document)
+
+        const signatory = await Signatory.findBy('rfc', payload.signer.tax_id)
+
+
+        const signatoryDocument = await SignatoryDocument.query().where({ signatory_id: signatory?.id, document_id: document?.id }).first()
+
+        if (signatoryDocument) {
+            await SignatoryDocument.query().update('is_signed', true).where('id', signatoryDocument?.id)
+        }
+
     }
 
     private generateRandomToken(length: number): string {

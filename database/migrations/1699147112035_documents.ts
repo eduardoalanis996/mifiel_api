@@ -6,6 +6,7 @@ export default class extends BaseSchema {
   public async up () {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
+      table.text('mifiel_document_id')
       table.string('name')
       table.string('original_file_name')
       table.string('singed_file_name')
