@@ -10,6 +10,8 @@ import Signatory from 'App/Models/Signatory'
 import Document from 'App/Models/Document'
 import * as crypto from 'crypto';
 import fs from 'fs'
+import XMLService from 'App/Services/XMLService'
+import zipService from 'App/Services/zipService'
 
 export default class DocumentsController {
 
@@ -24,7 +26,7 @@ export default class DocumentsController {
             name: 'Jesus Eduardo Alanis Mendez'
         }
         this.MIFIEL_DOCUMENT = `Contrato ${this.generateRandomToken(6)}`
-        this.MIFIEL_DOCUMENT_FILE_NAME =  'sample.pdf'
+        this.MIFIEL_DOCUMENT_FILE_NAME = 'sample.pdf'
     }
 
     public async store({ request, response }: HttpContextContract) {
@@ -148,11 +150,13 @@ export default class DocumentsController {
         }
     }
 
-    public async downloadContract({ response, params }: HttpContextContract) {
+    public async downloadContract({ request, response, params }: HttpContextContract) {
 
         const { documentId } = params
 
-        const filePath = `${Application.appRoot}/storage/contract_signed_${documentId}.pdf`
+        const {type} = request.qs()
+
+        const filePath = `${Application.appRoot}/storage/contract_signed_${documentId}.${type}`
 
         response.download(filePath)
     }
@@ -179,13 +183,24 @@ export default class DocumentsController {
 
         if (document) {
 
-            const signFilePath = await MiFielService.downloadSignedDocument(document.mifielDocumentId)
-
             const contractFilePath = `${Application.appRoot}/storage/${this.MIFIEL_DOCUMENT_FILE_NAME}`
+
+            const fileContent = fs.readFileSync(contractFilePath)
+
+            const hashContent = HashService.calculateHash(fileContent)
 
             const contractFileName = `contract_signed_${document.mifielDocumentId}`
 
-            await PdfService.mixFile(contractFilePath, signFilePath, contractFileName)
+            const signFilePdfPath = await MiFielService.downloadSignedDocument(document.mifielDocumentId, 'pdf')
+            const signFileXmlPath = await MiFielService.downloadSignedDocument(document.mifielDocumentId, 'xml')
+
+            const pdfPath = await PdfService.mixFile(contractFilePath, signFilePdfPath, contractFileName)
+
+            const xmlPath = await XMLService.setFileContentToXML(signFileXmlPath, document.encode,hashContent,document.name)
+
+            const zipPath = `${Application.appRoot}/storage/${contractFileName}.zip`
+
+            await zipService.createZipFile([pdfPath, xmlPath],zipPath )
 
             await Document.query().update({ is_signed: true, signedFileName: contractFileName }).where('id', document?.id)
         }

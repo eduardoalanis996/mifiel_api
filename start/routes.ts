@@ -18,6 +18,9 @@
 |
 */
 
+import XMLService from 'App/Services/XMLService'
+import Application from '@ioc:Adonis/Core/Application'
+
 import Route from '@ioc:Adonis/Core/Route'
 
 Route.post('/sign_callback_url', 'DocumentsController.signCallback')

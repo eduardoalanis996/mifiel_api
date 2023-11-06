@@ -38,16 +38,21 @@ class MiFielService {
         }
     }
 
-    public async downloadSignedDocument(documentId: string): Promise<any> {
+    public async downloadSignedDocument(documentId: string, type: string): Promise<any> {
         try {
-            const download = await axios.get(`${Env.get('MIFIEL_API_URL')}documents/${documentId}/file_signed?download=true`, {
+
+            const urlPath = type == 'pdf' ? 'file_signed?download=true' : 'xml'
+
+            const fileName =  type == 'pdf' ? 'signed_file' : 'contract_signed'
+
+            const download = await axios.get(`${Env.get('MIFIEL_API_URL')}documents/${documentId}/${urlPath}`, {
                 headers: this.headersAuth,
                 responseType: 'stream',
             })
 
-            const path = `${Application.appRoot}/storage/signed_file_${documentId}.pdf`
+            const path = `${Application.appRoot}/storage/${fileName}_${documentId}.${type}`
 
-            const writer = fs.createWriteStream(`${Application.appRoot}/storage/signed_file_${documentId}.pdf`);
+            const writer = fs.createWriteStream(`${Application.appRoot}/storage/${fileName}_${documentId}.${type}`);
 
             download.data.pipe(writer);
 
