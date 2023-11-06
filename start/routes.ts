@@ -19,23 +19,15 @@
 */
 
 import Route from '@ioc:Adonis/Core/Route'
-// import MiFielService from 'App/Services/MiFielService'
-// import PdfService from 'App/Services/PdfService'
-
-// import Application from '@ioc:Adonis/Core/Application'
-
-// Route.get('/', async () => {
-//   const signPATH = await MiFielService.downloadSignedDocument()
-
-//   console.log(signPATH)
-
-//   await PdfService.mixFile(`${Application.appRoot}/storage/sample.pdf`, signPATH, 'test')
-// })
-
 
 Route.post('/sign_callback_url', 'DocumentsController.signCallback')
 
 Route.post('/callback_url', 'DocumentsController.callback')
 
 Route.post('/documents', 'DocumentsController.store')
+
 Route.get('/documents', 'DocumentsController.index')
+
+Route.get('/documents/:widgetId', 'DocumentsController.show')
+
+Route.get('/documents/download/:documentId', 'DocumentsController.downloadContract')

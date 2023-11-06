@@ -1,7 +1,7 @@
 
 import axios from "axios";
 import Env from '@ioc:Adonis/Core/Env'
-import fs  from 'fs'
+import fs from 'fs'
 import Application from '@ioc:Adonis/Core/Application'
 
 
@@ -33,12 +33,12 @@ class MiFielService {
 
 
             return request.data
-        } catch (error) {
-            console.error('Error al leer el archivo:', error.response.data);
+        } catch (e) {
+            throw new Error(e)
         }
     }
 
-    public async downloadSignedDocument(documentId: string = 'a20e23ed-4019-41c3-aa54-2bcf9dbecae4'): Promise<any> {
+    public async downloadSignedDocument(documentId: string): Promise<any> {
         try {
             const download = await axios.get(`${Env.get('MIFIEL_API_URL')}documents/${documentId}/file_signed?download=true`, {
                 headers: this.headersAuth,
@@ -50,15 +50,15 @@ class MiFielService {
             const writer = fs.createWriteStream(`${Application.appRoot}/storage/signed_file_${documentId}.pdf`);
 
             download.data.pipe(writer);
-        
+
             await new Promise((resolve, reject) => {
-              writer.on('finish', resolve);
-              writer.on('error', reject);
+                writer.on('finish', resolve);
+                writer.on('error', reject);
             });
 
             return path
-        } catch (error) {
-            console.error('Error al leer el archivo:', error);
+        } catch (e) {
+            throw new Error(e)
         }
     }
 
