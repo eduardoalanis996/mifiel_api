@@ -10,7 +10,7 @@ import Document from 'App/Models/Document'
 import * as crypto from 'crypto';
 import fs from 'fs'
 import Mail from '@ioc:Adonis/Addons/Mail'
-import SignatoryDocument from 'App/Models/SignatoryDocument'
+import PdfService from 'App/Services/PdfService'
 
 
 const MIFIEL_DOCUMENT_FILE_NAME = 'sample.pdf'
@@ -139,7 +139,7 @@ export default class DocumentsController {
         return response.status(200).json(responseData)
     }
 
-    public async callback({ request }: HttpContextContract) {
+    public async signCallback({ request }: HttpContextContract) {
         const payload = request.body()
 
         const document = await Document.findBy('mifiel_document_id', payload.document)
@@ -151,6 +151,26 @@ export default class DocumentsController {
 
         if (signatoryDocument) {
             await SignatoryDocument.query().update('is_signed', true).where('id', signatoryDocument?.id)
+        }
+
+    }
+
+    public async callback({ request }: HttpContextContract) {
+        const payload = request.body()
+
+        const document = await Document.findBy('mifiel_document_id', payload.id)
+
+        if (document) {
+
+            const signFilePath = await MiFielService.downloadSignedDocument()
+
+            const contractFilePath = `${Application.appRoot}/storage/${MIFIEL_DOCUMENT_FILE_NAME}`
+
+            const contractFileName = `contract_signed_${document.mifielDocumentId}`
+
+            await PdfService.mixFile(contractFilePath, signFilePath, contractFileName)
+
+            await Document.query().update({ is_signed: true, signedFileName: contractFileName }).where('id', document?.id)
         }
 
     }

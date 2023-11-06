@@ -9,7 +9,7 @@ export default class extends BaseSchema {
       table.text('mifiel_document_id')
       table.string('name')
       table.string('original_file_name')
-      table.string('singed_file_name')
+      table.string('signed_file_name')
       table.text('encode')
       table.boolean('is_signed').defaultTo(false)
       table.timestamp('created_at', { useTz: true })
